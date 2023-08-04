@@ -72,6 +72,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'disease_control_policy_management.wsgi.application'
 
+IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
