@@ -1,7 +1,10 @@
 from django.contrib import admin
-from import_export.admin import ImportExportModelAdmin
+from import_export.admin import ImportExportModelAdmin, ImportExportMixin, ImportMixin
 from import_export import resources, fields
 import tablib
+
+from django_admin_search.admin import AdvancedSearchAdmin
+from .form import PolicyFormSearch
 
 from .models import Policy, DiseaseType
 
@@ -55,11 +58,38 @@ class PolicyResource(resources.ModelResource):
         model = Policy
         verbose_name = True
 
+class MyPolicy(Policy):
+    class Meta:
+        proxy = True
+        verbose_name = "政策导入导出"
+        verbose_name_plural = "政策导入导出"
 
-class PolicyAdmin(ImportExportModelAdmin):
+class PolicyExportAdmin(ImportExportModelAdmin):
     list_display = ('file_name', 'category', 'year', 'department', 'publish_date', 'timeliness', 'effectiveness_level',)
-    list_filter = ('category', 'year', 'disease_types', )
-    search_fields = ('file_name', 'disease_types__name', 'category')
+    list_filter = ('category', 'year', 'department', 'disease_types', )
+
+    def has_add_permission(self, request):
+         return False
+
+    # get_queryset方法用于优化查询性能，通过select_related和prefetch_related方法提前加载关联的字段。
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        # queryset = queryset.select_related('category')
+        queryset = queryset.prefetch_related('disease_types')
+        return queryset
+
+    # get_ordering方法用于指定默认的排序方式，这里按照publication_year字段进行排序。
+    def get_ordering(self, request):
+        return ['year']
+
+    resource_class = PolicyResource
+
+
+class PolicyAdmin(AdvancedSearchAdmin):
+    list_display = ('file_name', 'category', 'year', 'department', 'publish_date', 'timeliness', 'effectiveness_level',)
+    list_filter = ('category', 'year', 'department', 'disease_types', )
+
+    search_form = PolicyFormSearch
 
     # get_queryset方法用于优化查询性能，通过select_related和prefetch_related方法提前加载关联的字段。
     def get_queryset(self, request):
@@ -81,9 +111,10 @@ class PolicyAdmin(ImportExportModelAdmin):
 
     #     return super().changelist_view(request, extra_context=extra_context)
 
-admin.site.site_header = '防疫政策数据库管理台'
-admin.site.site_title  = '防疫政策数据库'
-admin.site.index_title   = '管理台'
+admin.site.site_header = '中国传染病防治政策数据库'
+admin.site.site_title  = '中国传染病防治政策数据库'
+admin.site.index_title   = '中国传染病防治政策数据库'
 
 admin.site.register(Policy, PolicyAdmin)
+admin.site.register(MyPolicy, PolicyExportAdmin)
 admin.site.register(DiseaseType)

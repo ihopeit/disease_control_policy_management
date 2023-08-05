@@ -7,6 +7,9 @@ class DiseaseType(models.Model):
 
     def __str__(self):
         return self.name
+    class Meta:
+        verbose_name = "传染病类型"
+        verbose_name_plural = "传染病类型"
 
 class Policy(models.Model):
         # 其他字段...
@@ -55,7 +58,11 @@ class Policy(models.Model):
 
     created_date = models.DateTimeField(auto_now_add=True, verbose_name='创建日期')
     updated_date = models.DateTimeField(auto_now=True, verbose_name='更新日期')
-    status = models.CharField(max_length=100, null=True, blank=True, verbose_name='状态')
+    comment = models.CharField(max_length=2048, null=True, blank=True, verbose_name='备注')
 
     def __str__(self):
         return self.file_name
+    
+    class Meta:
+        verbose_name = "传染病防治政策"
+        verbose_name_plural = "传染病防治政策"
