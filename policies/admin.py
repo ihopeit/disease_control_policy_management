@@ -6,6 +6,7 @@ import tablib
 from .models import Policy, DiseaseType
 
 # see: https://cloud.tencent.com/developer/article/2219443
+# https://zhuanlan.zhihu.com/p/456360553
 # https://geek-docs.com/django/django-questions/776_django_parsing_fields_in_djangoimportexport_before_importing.html
 class PolicyResource(resources.ModelResource):
 
@@ -16,9 +17,10 @@ class PolicyResource(resources.ModelResource):
         for i in field_list:
             self.verbose_name_dict[i.name] = i.verbose_name
 
+    # def get_export_fields(self):
     # 默认导入导出field的column_name为字段的名称，这里修改为字段的verbose_name
-    def get_export_fields(self):
-        fields = self.get_fields()
+    def get_fields(self): # 导入和导出的表头都需要用 verbose_name
+        fields = super(PolicyResource, self).get_fields()
         for field in fields:
             field_name = self.get_field_name(field)
             # 如果有设置 verbose_name，则将 column_name 替换为 verbose_name, 否则维持原有的字段名。
@@ -51,6 +53,7 @@ class PolicyResource(resources.ModelResource):
         report_skipped = False  # 所有记录将被导入
         # export_order = ('id', )
         model = Policy
+        verbose_name = True
 
 
 class PolicyAdmin(ImportExportModelAdmin):

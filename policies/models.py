@@ -38,7 +38,7 @@ class Policy(models.Model):
     ]
 
     category = models.CharField(max_length=100, verbose_name='政策类别')
-    file_name = models.CharField(max_length=100, verbose_name='政策文件名')
+    file_name = models.CharField(max_length=100, unique=True, verbose_name='政策文件名')
     file_path = models.FileField(upload_to='policy_files/', null=True, blank=True, verbose_name='政策文件路径')
     number = models.CharField(max_length=100, verbose_name='文号')
     country = models.CharField(max_length=100, verbose_name='所属国家')
