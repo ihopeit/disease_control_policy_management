@@ -14,10 +14,22 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.urls import reverse
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic.base import RedirectView
+
+from policies import views
 
 urlpatterns = [
+    # redirect home page to policy list page 
+    path('', RedirectView.as_view(url = '/admin/policies/policy/')),
+
     path('admin/', admin.site.urls),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+admin.site.site_header = '防疫政策数据库管理台'
+admin.site.site_title  = '防疫政策数据库'
+admin.site.index_title   = '管理台'

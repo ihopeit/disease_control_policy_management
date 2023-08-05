@@ -81,6 +81,9 @@ class PolicyAdmin(ImportExportModelAdmin):
 
     #     return super().changelist_view(request, extra_context=extra_context)
 
+admin.site.site_header = '防疫政策数据库管理台'
+admin.site.site_title  = '防疫政策数据库'
+admin.site.index_title   = '管理台'
 
 admin.site.register(Policy, PolicyAdmin)
 admin.site.register(DiseaseType)

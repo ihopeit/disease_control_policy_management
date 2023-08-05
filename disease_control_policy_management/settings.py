@@ -32,6 +32,9 @@ ALLOWED_HOSTS = ["www.ruoguedu.com:9000", "www.ruoguedu.com", "ruoguedu.com:9000
 # Application definition
 
 INSTALLED_APPS = [
+    # Add admin_interface and colorfield to settings.INSTALLED_APPS before django.contrib.admin
+    "admin_interface",
+    "colorfield",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +44,10 @@ INSTALLED_APPS = [
     'import_export',
     'policies',
 ]
+
+# want use modals instead of popup windows, ensure to add X_FRAME_OPTIONS = "SAMEORIGIN" setting.
+X_FRAME_OPTIONS = "SAMEORIGIN"
+SILENCED_SYSTEM_CHECKS = ["security.W019"]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
