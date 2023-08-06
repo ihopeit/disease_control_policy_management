@@ -46,7 +46,7 @@ class Policy(models.Model):
     number = models.CharField(max_length=100, verbose_name='文号')
     country = models.CharField(max_length=100, verbose_name='所属国家')
     department = models.CharField(max_length=100, verbose_name='发布部门')
-    year = models.IntegerField(validators=year_validator, help_text='请输入发布年份 yyyy（有效年份为1949~当前年份）', verbose_name='发布年份')
+    year = models.IntegerField(validators=year_validator, help_text='请输入发布年份 yyyy（有效年份为1949~当前年份）', verbose_name='发布年份', default=1949)
     publish_date = models.DateField(verbose_name='发布日期')
     implementation_date = models.DateField(null=True, blank=True, verbose_name='实施日期')
     disease_types = models.ManyToManyField(DiseaseType, verbose_name='传染病类型列表')
