@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.apps import apps
 
 from import_export.admin import ImportExportModelAdmin, ImportExportMixin, ImportMixin
+from import_export.widgets import ManyToManyWidget
+
 from import_export import resources, fields
 import tablib
 
@@ -24,13 +26,21 @@ ADMIN_ORDERING = (
 # https://geek-docs.com/django/django-questions/776_django_parsing_fields_in_djangoimportexport_before_importing.html
 class PolicyResource(resources.ModelResource):
 
+    # 给Resource添加一个自定义字段，指向模型的关系对象，用widget做格式规范
+    # 关联关系的导入导出, ForeignKeyWidget, ManyToManyWidget
+    disease_types = fields.Field(
+        column_name='传染病类型',
+        attribute='disease_types',
+        widget=ManyToManyWidget(DiseaseType, separator=',', field='name')
+    )
+    
     def __init__(self, input_contract=None):
         super(PolicyResource, self).__init__()
         field_list = Policy._meta.fields
         self.verbose_name_dict = {}
         for i in field_list:
             self.verbose_name_dict[i.name] = i.verbose_name
-
+            
     # def get_export_fields(self):
     # 默认导入导出field的column_name为字段的名称，这里修改为字段的verbose_name
     def get_fields(self): # 导入和导出的表头都需要用 verbose_name
@@ -65,7 +75,8 @@ class PolicyResource(resources.ModelResource):
     class Meta:
         skip_unchanged = True  # 是否跳过的记录出现在导入结果对象
         report_skipped = False  # 所有记录将被导入
-        # export_order = ('id', )
+        # export_order = ("id","传染病类型","政策类别","政策文件名","政策文件路径","文号","所属国家","发布部门","发布年份","发布日期","实施日期","关键词","时效性","效力级别","创建日期","更新日期","备注")
+        export_order = ("id","disease_types", "category","file_name","file_path","number","country","department","year","publish_date","implementation_date","disease_types","keywords","timeliness","effectiveness_level","created_date","updated_date","comment")
         model = Policy
         verbose_name = True
 
@@ -76,7 +87,7 @@ class MyPolicy(Policy):
         verbose_name_plural = "政策批量导入导出"
 
 class PolicyExportAdmin(ImportExportModelAdmin):
-    list_display = ('file_name', 'category', 'year', 'department', 'publish_date', 'timeliness', 'effectiveness_level',)
+    list_display = ('file_name', 'id', 'category', 'year', 'department', 'publish_date', 'timeliness', 'effectiveness_level',)
     list_filter = ('category', 'year', 'department', 'disease_types', )
 
     def has_add_permission(self, request):
@@ -100,7 +111,7 @@ class PolicyExportAdmin(ImportExportModelAdmin):
 
 
 class PolicyAdmin(AdvancedSearchAdmin):
-    list_display = ('file_name', 'category', 'year', 'department', 'publish_date', 'timeliness', 'effectiveness_level',)
+    list_display = ('file_name', 'id', 'category', 'year', 'department', 'publish_date', 'timeliness', 'effectiveness_level',)
     list_filter = ('category', 'year', 'department', 'disease_types', )
 
     search_form = PolicyFormSearch
@@ -115,8 +126,6 @@ class PolicyAdmin(AdvancedSearchAdmin):
     # get_ordering方法用于指定默认的排序方式，这里按照publication_year字段进行排序。
     def get_ordering(self, request):
         return ['year']
-
-    resource_class = PolicyResource
 
     # def changelist_view(self, request, extra_context=None):
     #     # 自定义统计逻辑

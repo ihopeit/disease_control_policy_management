@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
 class DiseaseType(models.Model):
+    id = models.AutoField(primary_key=True, verbose_name='ID')
     name = models.CharField(max_length=100, verbose_name='传染病类型')
 
     def __str__(self):
@@ -40,6 +41,7 @@ class Policy(models.Model):
         MaxValueValidator(current_year, message=f'年份不能晚于{current_year}年'),
     ]
 
+    id = models.AutoField(primary_key=True, verbose_name='ID')
     category = models.CharField(max_length=100, verbose_name='政策类别')
     file_name = models.CharField(max_length=100, unique=True, verbose_name='政策文件名')
     file_path = models.FileField(upload_to='policy_files/', null=True, blank=True, verbose_name='政策文件路径')
