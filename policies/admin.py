@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.apps import apps
+
 from import_export.admin import ImportExportModelAdmin, ImportExportMixin, ImportMixin
 from import_export import resources, fields
 import tablib
@@ -7,6 +9,15 @@ from django_admin_search.admin import AdvancedSearchAdmin
 from .form import PolicyFormSearch
 
 from .models import Policy, DiseaseType
+
+# Set ordering of Apps and models in Django admin dashboard
+# https://stackoverflow.com/questions/58256151/set-ordering-of-apps-and-models-in-django-admin-dashboard
+ADMIN_ORDERING = (
+    ('policies', ('Policy', 'MyPolicy', 'DiseaseType')),
+    ('auth', ('User', 'Group')),
+    ('admin_interface', ('Theme', ))
+)
+
 
 # see: https://cloud.tencent.com/developer/article/2219443
 # https://zhuanlan.zhihu.com/p/456360553
@@ -61,8 +72,8 @@ class PolicyResource(resources.ModelResource):
 class MyPolicy(Policy):
     class Meta:
         proxy = True
-        verbose_name = "政策导入导出"
-        verbose_name_plural = "政策导入导出"
+        verbose_name = "政策批量导入导出"
+        verbose_name_plural = "政策批量导入导出"
 
 class PolicyExportAdmin(ImportExportModelAdmin):
     list_display = ('file_name', 'category', 'year', 'department', 'publish_date', 'timeliness', 'effectiveness_level',)
@@ -117,6 +128,49 @@ class PolicyAdmin(AdvancedSearchAdmin):
 admin.site.site_header = '中国传染病防治政策数据库'
 admin.site.site_title  = '中国传染病防治政策数据库'
 admin.site.index_title   = '中国传染病防治政策数据库'
+
+
+def get_app_list(self, request, app_label=None):
+    """
+        应用、model 排序
+    """
+    app_dict = self._build_app_dict(request, app_label)
+    
+    if not app_dict:
+        return
+        
+    NEW_ADMIN_ORDERING = []
+    if app_label:
+        for ao in ADMIN_ORDERING:
+            if ao[0] == app_label:
+                NEW_ADMIN_ORDERING.append(ao)
+                break
+    
+    if not app_label:
+        for app_key in list(app_dict.keys()):
+            if not any(app_key in ao_app for ao_app in ADMIN_ORDERING):
+                app_dict.pop(app_key)
+    
+    app_list = sorted(
+        app_dict.values(), 
+        key=lambda x: [ao[0] for ao in ADMIN_ORDERING].index(x['app_label'])
+    )
+     
+    for app, ao in zip(app_list, NEW_ADMIN_ORDERING or ADMIN_ORDERING):
+        if app['app_label'] == ao[0]:
+            for model in list(app['models']):
+                if not model['object_name'] in ao[1]:
+                    app['models'].remove(model)
+        app['models'].sort(key=lambda x: ao[1].index(x['object_name']))
+    return app_list
+
+# 模块排序
+admin.AdminSite.get_app_list = get_app_list
+
+#  应用名设置成中文
+# https://docs.djangoproject.com/en/4.1/ref/applications/#for-application-authors
+apps.get_app_config('auth').verbose_name = "系统管理权限"
+apps.get_app_config('admin_interface').verbose_name = "界面管理"
 
 admin.site.register(Policy, PolicyAdmin)
 admin.site.register(MyPolicy, PolicyExportAdmin)

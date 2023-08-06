@@ -64,5 +64,5 @@ class Policy(models.Model):
         return self.file_name
     
     class Meta:
-        verbose_name = "传染病防治政策"
-        verbose_name_plural = "传染病防治政策"
+        verbose_name = "传染病防治政策查询及添加"
+        verbose_name_plural = "传染病防治政策查询及添加"
