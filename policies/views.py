@@ -6,32 +6,6 @@ import datetime
 # from slick_reporting.fields import SlickReportField
 from .models import Policy, DiseaseType
 
-# Create your views here.
-# class SimpleListReport(ReportView):
-    
-#     report_model = Policy
-#     # the model containing the data we want to analyze
-
-#     date_field = 'created_date'
-#     # a date/datetime field on the report model
-
-#     group_by = 'year'
-#     columns = ['year',
-#                SlickReportField.create(Count, 'year', name='year__count', verbose_name='Year Count'),
-#                ]
-
-#     # fields on the report model ... surprise !
-#     # columns = ['created_date', 'year', 'category', 'file_name',]
-
-
-#     chart_settings = [{
-#         'type': 'line', # line, bar, pie, # maybe doughnut, polarArea, radar, bubble ?
-#         'engine_name': 'chartsjs',  # setting the engine per chart
-#         'data_source': ['year__count'],  # the name of the field containing the data values
-#         'title_source': ['year'],  # name of the field containing the data labels
-#         'title': 'Chart (Year Distributions) Highcharts',  # to be displayed on the chart
-#     }]
-
 from django.views.generic import TemplateView
 from chartjs.views.lines import BaseLineChartView
 
@@ -64,7 +38,6 @@ def policy_visualization(request):
     current_year = datetime.datetime.now().year
 
     # 处理查询参数
-    category = request.GET.getlist('category')
     start_year = request.GET.get('start_year')
     end_year = request.GET.get('end_year')
     exclude_ids = request.GET.get('exclude_ids')
@@ -72,8 +45,12 @@ def policy_visualization(request):
     # 构造查询条件
     query = Policy.objects.all()
 
-    if category:
-        query = query.filter(disease_types__name__in=category)
+    selected_disease_types = request.GET.getlist('disease_types', [])
+    if selected_disease_types:
+        query = query.filter(disease_types__id__in=selected_disease_types)
+
+    # if category:
+    #     query = query.filter(disease_types__name__in=category)
 
     if start_year:
         query = query.filter(year__gte=start_year)
@@ -82,50 +59,27 @@ def policy_visualization(request):
         query = query.filter(year__lte=end_year)
 
     if exclude_ids:
-        exclude_ids = exclude_ids.split(',')
-        query = query.exclude(id__in=exclude_ids)
+        exclude_id_list = exclude_ids.split(',')
+        query = query.exclude(id__in=exclude_id_list)
 
     # 查询政策数量按年份分组
-    policy_count_by_year = query.values('year').annotate(count=Count('id')).order_by('year')
+    # 在进行年份统计时，同一条政策记录如果属于多个传染病类别，会被重复计算, Count 聚合函数在默认情况下不会考虑重复的记录。
+    policy_count_by_year = query.values('year').annotate(count=Count('id', distinct=True)).order_by('year')
+
+    # 计算数据总量
+    total_count = query.distinct().count()
 
     context = {
         'disease_types': disease_types,
+        'policy_list': list(query.distinct()),
         'policy_count_by_year': list(policy_count_by_year),
+        'selected_disease_types': [int(id) for id in request.GET.getlist('disease_types', [])],
+        'current_year': current_year,
         'start_year': start_year,
         'end_year': end_year,
         'exclude_ids': exclude_ids,
+        'total_count': total_count,  # 添加数据总量
     }
 
     return render(request, 'policy_visualization.html', context)
 
-def policy_visualization2(request):
-    # 处理查询参数
-    categories = request.GET.getlist('category')
-    start_year = request.GET.get('start_year')
-    end_year = request.GET.get('end_year')
-    exclude_ids_input = request.GET.get('exclude_ids')
-
-    # 构建查询条件
-    query = Policy.objects.all()
-    if categories:
-        query = query.filter(category__in=categories)
-    if start_year:
-        query = query.filter(year__gte=start_year)
-    if end_year:
-        query = query.filter(year__lte=end_year)
-    if exclude_ids_input and exclude_ids_input != '.':
-        exclude_ids = [int(id) for id in exclude_ids_input.split(',')]
-        query = query.exclude(id__in=exclude_ids)
-
-    # 查询数据并进行可视化处理
-    policy_count_by_year = query.values('year').annotate(count=Count('id'))
-
-    data = list(policy_count_by_year)
-
-
-    # 构建数据用于传递给模板
-    context = {
-        'policy_count_by_year': data,
-    }
-
-    return render(request, 'policy_visualization.html', context)

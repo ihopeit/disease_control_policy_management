@@ -1,5 +1,3 @@
-<!-- policy_visualization.html -->
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,6 +6,32 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
+    <script>
+        function updateExcludedIds() {
+            // 获取所有的复选框和输入框
+            var checkboxes = document.getElementsByClassName('policy-checkbox');
+            var input = document.getElementById('exclude_ids');
+
+            var input_exclude_ids = "{{ exclude_ids | safe}}";
+            var origin_exclude_ids = input_exclude_ids.split(',');
+
+            // 创建一个数组来保存被选中的ID
+            var ids = [];
+
+            // 遍历所有的复选框
+            for (var i = 0; i < checkboxes.length; i++) {
+                var checkbox = checkboxes[i];
+
+                // 如果复选框被选中，将其值添加到数组中
+                if (checkbox.checked) {
+                    ids.push(checkbox.value);
+                }
+            }
+
+            // 更新输入框的值
+            input.value = [...ids, ...origin_exclude_ids].join(',');
+        }
+    </script>
     <div class="container">
         <h1 class="mt-4">传染病防治政策数据可视化</h1>
 
@@ -15,10 +39,10 @@
             <div class="col-md-6">
                 <form method="GET" action="{% url 'policy_visualization' %}">
                     <div class="mb-3">
-                        <label for="category" class="form-label">传染病分类：</label>
-                        <select name="category" id="category" class="form-select" multiple>
+                        <label for="diseaseTypes">传染病分类：</label>
+                        <select multiple class="form-control" id="diseaseTypes" name="disease_types">
                             {% for disease_type in disease_types %}
-                                <option value="{{ disease_type.name }}" {% if disease_type.name in category %}selected{% endif %}>{{ disease_type.name }}</option>
+                                <option value="{{ disease_type.id }}" {% if disease_type.id in selected_disease_types %}selected{% endif %}>{{ disease_type.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -44,15 +68,24 @@
                 <table class="table">
                     <thead>
                         <tr>
+                            <th></th> <!-- 新增的标题 -->
+                            <th>ID</th>
+                            <th>类别</th>
+                            <th>文件</th>
                             <th>年份</th>
-                            <th>政策数量</th>
+                            <th>发布部门</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in policy_count_by_year %}
+                        {% for item in policy_list %}
                             <tr>
+                                 <!-- 在每一行添加一个复选框，并设置其值为政策的ID -->
+                                <td><input type="checkbox" class="policy-checkbox" value="{{ item.id }}" onchange="updateExcludedIds()"></td>
+                                <td>{{ item.id }}</td>
+                                <td>{{ item.category }}</td>
+                                <td>{{ item.file_name }}</td>
                                 <td>{{ item.year }}</td>
-                                <td>{{ item.count }}</td>
+                                <td>{{ item.department }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -65,6 +98,12 @@
         
             <div class="col-md-6">
                 <canvas id="policyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6" >
+                <div style="text-align:center;">数据总量：{{ total_count }}</div>
             </div>
         </div>
     </div>
