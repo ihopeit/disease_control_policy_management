@@ -43,8 +43,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_admin_search',
     'import_export',
+
+    'chartjs',
+    # 'slick_reporting',
+    # 'crispy_forms',
+    # 'crispy_bootstrap4',
+    
     'policies',
 ]
+
+#CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 
 # want use modals instead of popup windows, ensure to add X_FRAME_OPTIONS = "SAMEORIGIN" setting.
 X_FRAME_OPTIONS = "SAMEORIGIN"
@@ -130,8 +139,14 @@ MEDIA_URL = '/media/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
+# static root for running: python manage.py collectstatic 
 
+# to connect statics for highcharts:
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = 'static/'
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, 'static'),
+# )
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

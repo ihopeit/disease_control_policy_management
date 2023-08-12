@@ -20,6 +20,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
 
+from policies.views import line_chart, line_chart_json, policy_visualization
+
+
 from policies import views
 
 urlpatterns = [
@@ -27,5 +30,13 @@ urlpatterns = [
     path('', RedirectView.as_view(url = '/admin/policies/policy/')),
 
     path('admin/', admin.site.urls),
+
+    # path('report/', views.SimpleListReport.as_view(), name="policy_report"),
+    # path('report/undefined', views.SimpleListReport.as_view()),
+
+    path('chart', line_chart, name='line_chart'),
+    path('chartJSON', line_chart_json, name='line_chart_json'),
+    path('policy-visualization', policy_visualization, name='policy_visualization'),
+
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

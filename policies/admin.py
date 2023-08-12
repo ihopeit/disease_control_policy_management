@@ -76,7 +76,7 @@ class PolicyResource(resources.ModelResource):
         skip_unchanged = True  # 是否跳过的记录出现在导入结果对象
         report_skipped = False  # 所有记录将被导入
         # export_order = ("id","传染病类型","政策类别","政策文件名","政策文件路径","文号","所属国家","发布部门","发布年份","发布日期","实施日期","关键词","时效性","效力级别","创建日期","更新日期","备注")
-        export_order = ("id","disease_types", "category","file_name","file_path","number","country","department","year","publish_date","implementation_date","disease_types","keywords","timeliness","effectiveness_level","created_date","updated_date","comment")
+        export_order = ("id","disease_types", "category","file_name","number","country","department","year","publish_date","implementation_date","disease_types","keywords","timeliness","effectiveness_level","created_date","updated_date","comment")
         model = Policy
         verbose_name = True
 
