@@ -2,8 +2,19 @@
 
 {% block content %}
     {{block.super}}
-    <div>
-        <h1>报表</h1>
-        <a href="/policy-visualization">统计报表</a>
+    <div class="app-{{ app.app_label }} module">
+        <table>
+            <caption>
+                <a href="/policy-visualization" class="section" title="统计报表">报表</a>
+            </caption>
+            <tbody>
+                <tr class="model-{{ app.app_label }}">
+                    <th scope="row">
+                        <a href="/policy-visualization">统计报表</a>
+                    </th>
+                </tr>
+            </tbody>
+        </table>
     </div>
+
 {% endblock %}
