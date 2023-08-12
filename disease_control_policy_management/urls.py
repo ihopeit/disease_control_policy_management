@@ -31,6 +31,8 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
+    # path('policy/<int:pk>/', views.policy_detail, name='policy_detail'),
+
     # path('report/', views.SimpleListReport.as_view(), name="policy_report"),
     # path('report/undefined', views.SimpleListReport.as_view()),
 

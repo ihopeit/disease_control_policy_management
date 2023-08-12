@@ -1,6 +1,6 @@
 {% extends "admin/base_site.html" %}
 
-{% block title %}传染病防治政策数据可视化{% endblock %}
+{% block title %}传染病防治政策数据报表{% endblock %}
 
 {% block extrahead %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -44,7 +44,7 @@
         }
     </script>
     <div class="container">
-        <h1 class="mt-4">传染病防治政策数据可视化</h1>
+        <h1 class="mt-4">传染病防治政策数据报表</h1>
 
         <div class="row">
             <div class="col-md-6">
@@ -69,11 +69,24 @@
                         <input type="text" name="exclude_ids" id="exclude_ids" class="form-control" value="{{ exclude_ids }}" placeholder="政策 ID，多个以逗号分隔">
                     </div>
 
+                    <div class="mb-3 form-check">
+                        <div class="form-check-inline">
+                            <input type="checkbox" name="group_by_category" id="group_by_category" class="form-check-input" {% if group_by_category %}checked{% endif %}>
+                            <label for="group_by_category" class="form-check-label">按传染病类别统计 &nbsp; &nbsp; </label>
+                        </div>
+                        <div class="form-check-inline">
+                            <input type="checkbox" name="show_raw_data" id="show_raw_data" class="form-check-input" {% if show_raw_data %}checked{% endif %}>
+                            <label for="show_raw_data" class="form-check-label">显示原始数据</label>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary">查询</button>
                 </form>
             </div>
         </div>
 
+
+        {% if show_raw_data %}
         <div class="row mt-4">
             <div class="col-md-6">
                 <table class="table">
@@ -85,6 +98,12 @@
                             <th>文件</th>
                             <th>年份</th>
                             <th>发布部门</th>
+
+                            <th>发布日期</th>
+                            <th>实施日期</th>
+                            <th>传染病类型列表</th>
+                            <th>时效性</th>
+                            <th>效力级别</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,23 +111,39 @@
                             <tr>
                                  <!-- 在每一行添加一个复选框，并设置其值为政策的ID -->
                                 <td><input type="checkbox" class="policy-checkbox" value="{{ item.id }}" onchange="updateExcludedIds()"></td>
-                                <td>{{ item.id }}</td>
+                                <td><a href="/admin/policies/policy/{{ item.id }}" target="_blank">{{ item.id }}</a></td>
                                 <td>{{ item.category }}</td>
-                                <td>{{ item.file_name }}</td>
+                                <td><a href="/admin/policies/policy/{{ item.id }}" target="_blank">{{ item.file_name }}</a></td>
                                 <td>{{ item.year }}</td>
                                 <td>{{ item.department }}</td>
+
+                                <td>{{ item.publish_date }}</td>
+                                <td>{{ item.implementation_date }}</td>
+                                <td>
+                                    {% for disease_type in item.disease_types.all %}
+                                    {{ disease_type.name }}
+                                    {% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>{{ item.timeliness }}</td>
+                                <td>{{ item.effectiveness_level }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
+        {% endif %}
 
         <div class="row mt-4">
-            <!-- policy_visualization.html (续) -->
-        
+    
             <div class="col-md-6">
-                <canvas id="policyChart"></canvas>
+                {% if group_by_category %}
+                    <canvas id="categoryChart" width="400" height="200"></canvas>
+                {% else %}
+                    <canvas id="policyChart" width="400" height="200"></canvas>
+                {% endif %}
+                <!-- <canvas id="policyChart"></canvas> -->
             </div>
         </div>
 
@@ -121,6 +156,30 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.6.0/dist/chart.min.js"></script>
 <script>
+{% if group_by_category %}
+    var categoryChart = new Chart(document.getElementById('categoryChart'), {
+        type: 'bar',
+        data: {
+            labels: [{% for item in policy_count_by_category %}"{{ item.disease_types__name }}",{% endfor %}],
+            datasets: [{
+                label: '政策文件数量',
+                data: [{% for item in policy_count_by_category %}{{ item.count }},{% endfor %}],
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    precision: 0,
+                    stepSize: 1
+                }
+            }
+        }
+    });
+{% else %}
       // 获取后端传递的数据
       var policyData = {{ policy_count_by_year|safe }};
 
@@ -151,5 +210,6 @@
                 }
             }
         });
+{% endif %}
 </script>
 {% endblock %}

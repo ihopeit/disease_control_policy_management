@@ -66,11 +66,16 @@ def PolicyVisualizationView(request):
         exclude_id_list = [id_ for id_ in exclude_id_list if id_.isdigit()]
         if exclude_id_list:  # Only apply the filter if there are valid IDs to exclude.
             query = query.exclude(id__in=exclude_id_list)
-        
+
+    # 是否按照传染病类别统计政策文件数量    
+    group_by_category = request.GET.get('group_by_category')
+
+    show_raw_data = request.GET.get('show_raw_data')
 
     # 查询政策数量按年份分组
     # 在进行年份统计时，同一条政策记录如果属于多个传染病类别，会被重复计算, Count 聚合函数在默认情况下不会考虑重复的记录。
     policy_count_by_year = query.values('year').annotate(count=Count('id', distinct=True)).order_by('year')
+
 
     # 计算数据总量
     total_count = query.distinct().count()
@@ -81,17 +86,22 @@ def PolicyVisualizationView(request):
 
     other_context = {
         'disease_types': disease_types,
-        'policy_list': list(query.distinct()),
+        'policy_list':  query.distinct(),
         'policy_count_by_year': list(policy_count_by_year),
         'selected_disease_types': [int(id) for id in request.GET.getlist('disease_types', [])],
         'current_year': current_year,
+        'show_raw_data': show_raw_data,
         'start_year': start_year,
         'end_year': end_year,
+        'group_by_category': group_by_category,
         'total_count': total_count,  # 添加数据总量
     }
     if exclude_ids:
         other_context['exclude_ids'] =  exclude_ids
 
+    if group_by_category:
+        policy_count_by_disease_type = query.values('disease_types__name').annotate(count=Count('id', distinct=True)).order_by('disease_types')
+        other_context['policy_count_by_category'] = policy_count_by_disease_type
 
     context.update(other_context)
 
