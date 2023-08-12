@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
 
-from policies.views import line_chart, line_chart_json, policy_visualization
+from policies.views import line_chart, line_chart_json, PolicyVisualizationView
 
 
 from policies import views
@@ -36,7 +36,9 @@ urlpatterns = [
 
     path('chart', line_chart, name='line_chart'),
     path('chartJSON', line_chart_json, name='line_chart_json'),
-    path('policy-visualization', policy_visualization, name='policy_visualization'),
+    path('policy-visualization', PolicyVisualizationView, name='policy_visualization'),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+admin.site.index_template = 'admin/my_index.html'

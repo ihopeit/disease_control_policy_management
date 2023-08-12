@@ -1,5 +1,7 @@
 from django.db.models import Sum, Count
 from django.shortcuts import render
+from django.contrib import admin
+
 import datetime
 
 # from slick_reporting.views import ReportView
@@ -30,7 +32,7 @@ line_chart = TemplateView.as_view(template_name='line_chart.html')
 
 line_chart_json = LineChartJSONView.as_view()
 
-def policy_visualization(request):
+def PolicyVisualizationView(request):
     # 获取传染病分类列表
     disease_types = DiseaseType.objects.all()
 
@@ -58,9 +60,13 @@ def policy_visualization(request):
     if end_year:
         query = query.filter(year__lte=end_year)
 
-    if exclude_ids:
+    if exclude_ids and len(exclude_ids) > 0:
         exclude_id_list = exclude_ids.split(',')
-        query = query.exclude(id__in=exclude_id_list)
+        # Filter out any non-numeric values.
+        exclude_id_list = [id_ for id_ in exclude_id_list if id_.isdigit()]
+        if exclude_id_list:  # Only apply the filter if there are valid IDs to exclude.
+            query = query.exclude(id__in=exclude_id_list)
+        
 
     # 查询政策数量按年份分组
     # 在进行年份统计时，同一条政策记录如果属于多个传染病类别，会被重复计算, Count 聚合函数在默认情况下不会考虑重复的记录。
@@ -69,7 +75,11 @@ def policy_visualization(request):
     # 计算数据总量
     total_count = query.distinct().count()
 
-    context = {
+    context = admin.site.each_context(request)
+    # 添加其他上下文变量
+    #context['other_context'] = 'other value'
+
+    other_context = {
         'disease_types': disease_types,
         'policy_list': list(query.distinct()),
         'policy_count_by_year': list(policy_count_by_year),
@@ -77,9 +87,13 @@ def policy_visualization(request):
         'current_year': current_year,
         'start_year': start_year,
         'end_year': end_year,
-        'exclude_ids': exclude_ids,
         'total_count': total_count,  # 添加数据总量
     }
+    if exclude_ids:
+        other_context['exclude_ids'] =  exclude_ids
+
+
+    context.update(other_context)
 
     return render(request, 'policy_visualization.html', context)
 
