@@ -22,8 +22,6 @@ class PolicyFormSearch(Form):
     department = CharField(required=False, label="发文部门")
     #  widget=forms.CheckboxSelectMultiple,
 
-    disease_types = ModelChoiceField(queryset=DiseaseType.objects.all(), required=False, widget=forms.CheckboxSelectMultiple, label='涉及传染病')
-
     # 年份下拉选择:
     begin = IntegerField(required=False, #choices=YEAR_CHOICES, 
                         widget=forms.NumberInput(
@@ -43,3 +41,6 @@ class PolicyFormSearch(Form):
         } 
         ),
         label='至', initial=current_year)
+    
+    disease_types = ModelChoiceField(queryset=DiseaseType.objects.all(), required=False, widget=forms.CheckboxSelectMultiple, label='涉及传染病')
+
