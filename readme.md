@@ -20,10 +20,20 @@ pip install -r requirements.txt
 # 一、本机环境服务启动:
 
 ```Bash
+
+ # 初始化数据，创建管理员
+ python manage.py makemigrations
+ python manage.py migrate
+ python manage.py init_disease_types
+ python manage.py createsuperuser
+
+ #  启动服务
  python manage.py runserver 127.0.0.1:9000
 
  # optional: expose to external user beside localhost
  # python manage.py runserver 0.0.0.0:9000
+ # 
+ # 
 ```
 
 可以通过 http://localhost:9000 来访问服务。
@@ -38,3 +48,18 @@ python manage.py collectstatic
 # 将 static 文件拷贝到 nginx 服务中
 uvicorn disease_control_policy_management.asgi:application --port 8000 --workers 2
 ```
+
+# 三、产品效果截图
+
+## 产品首页
+![首页](images/disease_policy_home.jpg)
+
+## 数据导入/导出
+
+![数据导入/导出](images/disease_policy_import_export.jpg)
+
+## 按照传染病类别统计政策数量
+![按类别统计政策数量](images/disease_policy_stats_by_category.jpg)
+
+## 按照政策发布年份统计政策数量
+![按年份统计政策数量](images/disease_policy_stats_by_year.jpg)
